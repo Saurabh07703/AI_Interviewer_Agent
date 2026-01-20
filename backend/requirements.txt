@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+python-multipart
+# AI/ML dependencies
+opencv-python
+mediapipe
+numpy
+openai
+python-dotenv
