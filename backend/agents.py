@@ -10,8 +10,12 @@ class ReasoningAgent:
         self.history = []
 
     def generate_question(self, context: dict) -> str:
-        system_prompt = "You are an expert technical interviewer. Generate a relevant interview question based on the candidate's history and the job description."
-        user_prompt = f"Context: {context}. History: {self.history}. Generate the next question."
+        system_prompt = "You are an expert technical interviewer. Generate a relevant interview question based on the candidate's history, their CV, and the job description."
+        
+        cv_text = context.get('cv_text', 'No CV provided.')
+        # Ensure we don't overload the context if CV is huge, but for now passing it all
+        
+        user_prompt = f"CV Content: {cv_text}\nContext: {context}.\nHistory: {self.history}.\nGenerate the next question."
         
         question = self.llm.completion(user_prompt, system_prompt)
         

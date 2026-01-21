@@ -1,7 +1,7 @@
 from datetime import datetime
 
 class ReportGenerator:
-    def generate_report(self, candidate_data: dict, scores: dict, decision: dict) -> str:
+    def generate_report(self, candidate_data: dict, scores: dict, decision: dict, transcript: list = None) -> str:
         report = f"""
         INTERVIEW REPORT
         ----------------
@@ -18,7 +18,17 @@ class ReportGenerator:
         
         FEEDBACK:
         {self._generate_feedback(scores)}
+        
+        TRANSCRIPT:
+        ----------------
         """
+        
+        if transcript:
+            for entry in transcript:
+                role = entry.get('role', 'Unknown').upper()
+                content = entry.get('content', '')
+                report += f"\n[{role}]: {content}\n"
+        
         return report
 
     def _generate_feedback(self, scores):
