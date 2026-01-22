@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    Mic, MicOff, Video, VideoOff, PhoneOff,
-    MessageSquare, Users, Layout, Share,
+    Mic, MicOff, Video, VideoOff,
+    MessageSquare, Users, Share,
     Smile, MonitorUp, ChevronUp, Shield, Info,
-    X, Send, User, AlertTriangle, MoreHorizontal,
-    Grid, AppWindow, PenTool
+    X, Send, Grid, AppWindow, PenTool, MoreHorizontal,
+    Sparkles, Check
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -35,9 +35,10 @@ const InterviewRoom = () => {
     const [currentTime, setCurrentTime] = useState(new Date());
 
     // Mock Participants for Gallery View
+    const storedName = localStorage.getItem('candidate_name') || 'Saurabh Tiwari';
     const participants = [
-        { name: localStorage.getItem('candidate_name') || 'You', isMe: true, isTalking: isMicOn },
-        { name: 'AI Interviewer', isMe: false, isTalking: true }, // AI always assumed active for demo
+        { name: storedName.toUpperCase(), isMe: true, isTalking: isMicOn },
+        { name: 'AI INTERVIEWER', isMe: false, isTalking: true },
     ];
 
     // Timer Update
@@ -163,113 +164,73 @@ const InterviewRoom = () => {
     };
 
     return (
-        <div className="flex flex-col h-screen bg-[#1A1A1A] text-white font-sans overflow-hidden">
-            {/* Top Bar (Auto-hide logic could be added) */}
-            <div ref={topBarRef} className="h-12 flex items-center justify-between px-4 absolute top-0 w-full z-20 hover:bg-black/40 transition-colors">
-                <div className="flex items-center gap-2 cursor-pointer hover:bg-[#232323] p-1 rounded">
-                    <Shield className="w-5 h-5 text-green-500 fill-current" />
-                    <ChevronUp className="w-3 h-3 text-green-500" />
-                    <Info className="w-5 h-5 text-gray-400" />
+        <div className="flex flex-col h-screen bg-black text-white font-sans overflow-hidden">
+            {/* Top Bar - Zoom Workplace Style */}
+            <div ref={topBarRef} className="h-12 flex items-center justify-between px-4 absolute top-0 w-full z-20 bg-black/60 backdrop-blur-sm">
+                {/* Left: Brand Name */}
+                <div className="flex items-center gap-2">
+                    <span className="font-semibold text-lg tracking-tight">Zoom Workplace</span>
                 </div>
-                <div className="flex items-center gap-2 overflow-hidden">
-                    <div className="bg-[#232323] flex items-center rounded-md p-1 border border-gray-700">
-                        <button
-                            onClick={() => setViewMode('speaker')}
-                            className={`px-3 py-1 text-xs rounded-sm transition-colors ${viewMode === 'speaker' ? 'bg-[#393939] text-white font-medium' : 'text-gray-400 hover:text-white'}`}
-                        >
-                            Speaker
-                        </button>
-                        <button
-                            onClick={() => setViewMode('gallery')}
-                            className={`px-3 py-1 text-xs rounded-sm transition-colors ${viewMode === 'gallery' ? 'bg-[#393939] text-white font-medium' : 'text-gray-400 hover:text-white'}`}
-                        >
-                            Gallery
+
+                {/* Right: Security & View */}
+                <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-[#232323] cursor-pointer transition-colors">
+                        <div className="relative">
+                            <Shield className="w-5 h-5 text-[#00cc00] fill-current" />
+                            <Check className="w-3 h-3 text-black absolute top-1 left-1 stroke-[3px]" />
+                        </div>
+                    </div>
+
+                    <div className="bg-[#232323] flex items-center rounded-md p-1 border border-gray-700/50">
+                        <button className="px-3 py-1 text-xs font-medium bg-[#393939] rounded text-white flex items-center gap-2">
+                            <Grid className="w-3 h-3" /> View
                         </button>
                     </div>
-                    <button className="p-2 hover:bg-[#232323] rounded-md text-gray-200 text-sm font-medium flex items-center gap-1">
-                        View <Grid className="w-4 h-4 ml-1" />
-                    </button>
                 </div>
             </div>
 
             {/* Main Content Area */}
-            <div className={`flex-1 flex overflow-hidden ${activeSidebar ? 'mr-0' : ''} bg-[#1A1A1A]`}>
+            <div className={`flex-1 flex overflow-hidden ${activeSidebar ? 'mr-0' : ''} bg-black`}>
                 {/* Video Area */}
-                <div className="flex-1 flex items-center justify-center p-2 relative">
+                <div className="flex-1 flex items-center justify-center p-0 relative">
 
-                    {/* View: Gallery Mode */}
-                    {viewMode === 'gallery' && (
-                        <div className="flex items-center justify-center gap-2 w-full h-full">
-                            {/* User Tile */}
-                            <div className={`relative bg-black rounded-lg overflow-hidden w-1/2 aspect-video border-2 ${isMicOn ? 'border-[#00CC00]' : 'border-[#333]'}`}>
-                                <video ref={videoRef} autoPlay muted className={`w-full h-full object-cover transform scale-x-[-1] ${!isCamOn && 'hidden'}`} />
-                                {!isCamOn && (
-                                    <div className="absolute inset-0 flex items-center justify-center bg-[#232323]">
-                                        <div className="text-gray-400 text-xl font-medium">{participants[0].name}</div>
-                                    </div>
-                                )}
-                                <div className="absolute bottom-2 left-2 bg-black/60 px-2 py-0.5 rounded text-[11px] font-semibold tracking-wide flex items-center gap-1">
-                                    {isMicOn ? <div className="w-2 h-4 bg-green-500 rounded-full animate-pulse" /> : <MicOff className="w-3 h-3 text-red-500" />}
-                                    {participants[0].name}
+                    {/* View: Gallery Mode (Default/Simulated) */}
+                    <div className="flex items-center justify-center w-full h-full p-2 gap-2">
+                        {/* User Tile */}
+                        <div className={`relative bg-[#1a1a1a] rounded-t-lg overflow-hidden w-full max-w-4xl aspect-video border-[3px] border-[#0E71EB] shadow-2xl`}> {/* Blue border for active speaker simulation or focused */}
+                            <video ref={videoRef} autoPlay muted className={`w-full h-full object-cover transform scale-x-[-1] ${!isCamOn && 'hidden'}`} />
+                            {!isCamOn && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-[#232323]">
+                                    <div className="text-gray-400 text-3xl font-medium uppercase">{participants[0].name}</div>
                                 </div>
-                                <div className="absolute bottom-10 left-4 text-5xl">
-                                    <AnimatePresence>
-                                        {reactions.map(r => (
-                                            <motion.div key={r.id} initial={{ opacity: 0, y: 0 }} animate={{ opacity: 1, y: -80 }} exit={{ opacity: 0 }}>
-                                                {r.emoji}
-                                            </motion.div>
-                                        ))}
-                                    </AnimatePresence>
-                                </div>
+                            )}
+
+                            {/* Name Label */}
+                            <div className="absolute bottom-2 left-2 bg-black/60 px-2 py-1 rounded-sm text-[12px] font-semibold text-white flex items-center gap-1.5 backdrop-blur-sm">
+                                {isMicOn ? <div className="w-2 h-4 bg-green-500 rounded-full animate-pulse" /> : <MicOff className="w-3 h-3 text-red-500" />}
+                                {participants[0].name}
                             </div>
 
-                            {/* AI Agent Tile */}
-                            <div className="relative bg-black rounded-lg overflow-hidden w-1/2 aspect-video border-2 border-[#00CC00]">
-                                <div className="w-full h-full flex items-center justify-center bg-[#232323]">
-                                    <MonitorUp className="w-24 h-24 text-blue-500 opacity-80" />
-                                </div>
-                                <div className="absolute bottom-2 left-2 bg-black/60 px-2 py-0.5 rounded text-[11px] font-semibold tracking-wide flex items-center gap-1">
-                                    <div className="w-2 h-4 bg-green-500 rounded-full animate-pulse" />
-                                    AI Interviewer
-                                </div>
-                                {/* Context for AI Question */}
-                                <div className="absolute top-4 w-full text-center px-8 pointer-events-none">
-                                    <span className="bg-black/60 text-white/90 px-4 py-2 rounded-lg text-lg font-medium backdrop-blur-sm">
-                                        {currentQuestion}
-                                    </span>
-                                </div>
+                            {/* Reactions Overlay */}
+                            <div className="absolute bottom-12 left-4 text-6xl pointer-events-none">
+                                <AnimatePresence>
+                                    {reactions.map(r => (
+                                        <motion.div key={r.id} initial={{ opacity: 0, y: 0 }} animate={{ opacity: 1, y: -100 }} exit={{ opacity: 0 }} transition={{ duration: 1 }}>
+                                            {r.emoji}
+                                        </motion.div>
+                                    ))}
+                                </AnimatePresence>
                             </div>
                         </div>
-                    )}
+                    </div>
 
-                    {/* View: Speaker Mode */}
-                    {viewMode === 'speaker' && (
-                        <div className="relative w-full h-full bg-black flex items-center justify-center">
-                            {/* PiP */}
-                            <div className="absolute top-14 right-4 w-60 aspect-video bg-black border border-[#333] rounded-lg overflow-hidden z-10 shadow-lg">
-                                <video ref={videoRef} autoPlay muted className={`w-full h-full object-cover transform scale-x-[-1] ${!isCamOn && 'hidden'}`} />
-                                {!isCamOn && <div className="w-full h-full flex items-center justify-center bg-[#232323] text-gray-500 uppercase font-bold text-2xl">{participants[0].name.charAt(0)}</div>}
-                                <div className="absolute bottom-1 left-1 bg-black/50 px-1.5 rounded text-[10px] text-white">
-                                    {participants[0].name}
-                                </div>
-                            </div>
-
-                            {/* Active Speaker (AI) */}
-                            <div className="w-full h-full flex flex-col items-center justify-center bg-[#1A1A1A]">
-                                <MonitorUp className="w-32 h-32 text-gray-600 mb-8" />
-                                <h2 className="text-3xl font-semibold text-white/90 text-center max-w-3xl leading-snug">
-                                    {currentQuestion}
-                                </h2>
-                                <p className="text-gray-500 mt-4 text-sm font-medium uppercase tracking-widest">Active Speaker</p>
-                            </div>
-                        </div>
-                    )}
+                    {/* Simulated Floating Self View (if in speaker mode - skipped for high fidelity gallery look as per image) */}
 
                     {/* Overlays */}
                     {isScreenSharing && (
                         <div className="absolute inset-0 z-20 bg-black flex items-center justify-center">
                             <video ref={screenRef} autoPlay className="max-w-full max-h-full object-contain" />
-                            <div className="absolute top-4 bg-green-500 text-black px-4 py-1 rounded font-bold text-xs uppercase tracking-wider">
+                            <div className="absolute top-16 bg-green-500 text-black px-6 py-2 rounded-full font-bold text-sm shadow-xl">
                                 You are screen sharing
                             </div>
                         </div>
@@ -281,10 +242,15 @@ const InterviewRoom = () => {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: 20 }}
-                                className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white px-6 py-3 rounded-md flex items-center gap-3 shadow-xl"
+                                className="absolute bottom-24 left-1/2 -translate-x-1/2 z-50 bg-[#2D2D2D] text-white px-4 py-2 rounded-lg flex items-center gap-3 shadow-2xl border border-red-500/50"
                             >
-                                <AlertTriangle className="w-5 h-5 fill-white text-red-600" />
-                                <span className="font-semibold">{fraudWarning}</span>
+                                <div className="bg-red-500/20 p-2 rounded-full">
+                                    <AlertTriangle className="w-5 h-5 text-red-500" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="font-semibold text-sm">Proctoring Alert</span>
+                                    <span className="text-xs text-gray-300">{fraudWarning}</span>
+                                </div>
                             </motion.div>
                         )}
                     </AnimatePresence>
@@ -292,41 +258,42 @@ const InterviewRoom = () => {
 
                 {/* Sidebar */}
                 {activeSidebar && (
-                    <div className="w-[320px] bg-white flex flex-col h-full border-l border-gray-300 shadow-xl z-20">
-                        {/* Sidebar content - kept simple but functional */}
-                        <div className="h-12 flex items-center justify-center border-b border-gray-200 relative">
+                    <div className="w-[350px] bg-white flex flex-col h-full border-l border-gray-300 shadow-2xl z-20">
+                        {/* Sidebar Header */}
+                        <div className="h-12 flex items-center justify-center border-b border-gray-200 relative bg-gray-50">
                             <h3 className="font-semibold text-gray-800 text-sm">{activeSidebar === 'participants' ? `Participants (${participants.length})` : 'Meeting Chat'}</h3>
                             <button onClick={() => setActiveSidebar(null)} className="absolute left-3 text-gray-500 hover:text-black">
                                 <ChevronUp className="w-4 h-4 rotate-180" />
                             </button>
                         </div>
 
+                        {/* Sidebar Content */}
                         <div className="flex-1 overflow-y-auto bg-white">
                             {activeSidebar === 'chat' ? (
-                                <div className="p-4 space-y-3">
+                                <div className="p-4 space-y-4">
                                     {messages.map((m, i) => (
-                                        <div key={i} className="flex flex-col gap-0.5">
+                                        <div key={i} className="flex flex-col gap-1">
                                             <div className="flex items-baseline gap-2">
-                                                <span className="text-xs font-bold text-gray-700">{m.role === 'user' ? 'Me' : 'AI Interviewer'}</span>
+                                                <span className="text-xs font-bold text-gray-900">{m.role === 'user' ? 'Me' : 'AI Recruiter'}</span>
                                                 <span className="text-[10px] text-gray-400">{m.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                             </div>
-                                            <div className="text-sm text-gray-800 leading-relaxed bg-gray-100 p-2 rounded-md rounded-tl-none">
+                                            <div className="text-sm text-gray-800 leading-relaxed bg-[#f0f2f5] p-2.5 rounded-lg rounded-tl-none">
                                                 {m.text}
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             ) : (
-                                <div className="p-0">
+                                <div className="divide-y divide-gray-100">
                                     {participants.map((p, i) => (
-                                        <div key={i} className="flex items-center justify-between p-3 hover:bg-gray-100 border-b border-gray-50">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-8 h-8 rounded bg-gray-300 flex items-center justify-center text-xs font-bold text-gray-600">{p.name.charAt(0)}</div>
-                                                <span className="text-sm text-gray-800 font-medium">{p.name} {p.isMe && '(Me)'}</span>
+                                        <div key={i} className="flex items-center justify-between p-3 py-2 hover:bg-gray-50">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">{p.name.charAt(0)}</div>
+                                                <span className="text-sm text-gray-700 font-medium">{p.name} {p.isMe && '(Me)'}</span>
                                             </div>
-                                            <div className="flex gap-2">
-                                                {p.isTalking ? <Mic className="w-4 h-4 text-gray-600" /> : <MicOff className="w-4 h-4 text-red-500" />}
-                                                <Video className="w-4 h-4 text-gray-600" />
+                                            <div className="flex gap-2 text-gray-500">
+                                                {p.isTalking ? <Mic className="w-4 h-4 text-gray-700" /> : <MicOff className="w-4 h-4 text-red-500" />}
+                                                <Video className="w-4 h-4 text-gray-700" />
                                             </div>
                                         </div>
                                     ))}
@@ -335,10 +302,16 @@ const InterviewRoom = () => {
                         </div>
 
                         {activeSidebar === 'chat' && (
-                            <div className="p-4 border-t border-gray-200">
+                            <div className="p-4 border-t border-gray-200 bg-gray-50">
                                 <div className="relative">
-                                    <input className="w-full border border-gray-300 rounded-md py-2 px-3 text-sm focus:outline-none focus:border-blue-500" placeholder="Type message here..." />
-                                    <button className="absolute right-2 top-2 text-gray-400 hover:text-blue-600"><Send className="w-4 h-4" /></button>
+                                    <textarea
+                                        className="w-full border border-gray-300 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none h-20"
+                                        placeholder="Type message here..."
+                                    />
+                                    <div className="absolute bottom-2 right-2 flex gap-2">
+                                        <button className="p-1 text-gray-400 hover:text-blue-600 rounded bg-white border border-gray-200"><Smile className="w-4 h-4" /></button>
+                                        <button className="p-1 text-white bg-blue-600 hover:bg-blue-700 rounded"><Send className="w-4 h-4" /></button>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -346,10 +319,14 @@ const InterviewRoom = () => {
                 )}
             </div>
 
-            {/* Bottom Controls Bar (Fixed - Exact Height & Color) */}
-            <div ref={bottomBarRef} className="h-[72px] bg-[#1a1a1a]/95 backdrop-blur-sm flex items-center justify-center px-4 fixed bottom-0 w-full z-30 border-t border-gray-800">
+            {/* Bottom Controls Bar */}
+            <div ref={bottomBarRef} className="h-[72px] bg-[#1a1a1a] flex items-center justify-between px-4 fixed bottom-0 w-full z-30 border-t border-gray-800/50">
+
+                {/* Left Spacer (for balance if needed, or put Audio settings here) */}
+                <div className="w-[100px] hidden md:block"></div>
+
                 {/* Center: Main Controls */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center justify-center gap-1">
                     <ControlButton
                         icon={isMicOn ? Mic : MicOff}
                         label={isMicOn ? "Mute" : "Unmute"}
@@ -369,6 +346,9 @@ const InterviewRoom = () => {
                         onClick={toggleCam}
                         subIcon={ChevronUp}
                     />
+
+                    <div className="w-px h-8 bg-gray-700 mx-2" /> {/* Separator */}
+
                     <ControlButton icon={Shield} label="Security" />
                     <ControlButton
                         icon={Users}
@@ -391,8 +371,8 @@ const InterviewRoom = () => {
                     <ControlButton
                         icon={Share}
                         label="Share Screen"
-                        iconColor="text-[#0E71EB]" // Zoom Green usually, but Web often uses Blue/Green distinctions
-                        customIcon={<div className="bg-[#0E71EB] p-0.5 rounded-sm"><Share className="w-5 h-5 text-black fill-current" /></div>}
+                        iconColor="text-[#0E71EB]"
+                        customIcon={<div className="bg-[#0E71EB]/20 p-1 rounded"><Share className="w-5 h-5 text-[#0E71EB] fill-current" /></div>}
                         onClick={toggleScreenShare}
                         isActive={isScreenSharing}
                         activeBg="bg-[#2D2D2D]"
@@ -400,17 +380,23 @@ const InterviewRoom = () => {
                     />
                     <ControlButton icon={Smile} label="Reactions" onClick={() => triggerReaction('👍')} />
                     <ControlButton icon={AppWindow} label="Apps" />
+                    <ControlButton
+                        icon={Sparkles}
+                        label="AI Companion"
+                        iconColor="text-purple-400"
+                        activeColor="text-purple-400"
+                    />
                     <ControlButton icon={PenTool} label="Whiteboards" subIcon={ChevronUp} />
                     <ControlButton icon={MoreHorizontal} label="More" />
                 </div>
 
-                {/* Right: End */}
-                <div className="absolute right-4 text-white">
+                {/* Right: End Button */}
+                <div className="flex items-center justify-end w-[100px]">
                     <button
                         onClick={() => navigate('/dashboard')}
-                        className="bg-[#E02828] hover:bg-[#C92424] text-white px-5 py-2 rounded-md font-bold text-sm tracking-wide transition-colors"
+                        className="bg-[#E02828] hover:bg-[#C92424] text-white px-4 py-1.5 rounded-md font-semibold text-sm tracking-wide transition-colors flex items-center justify-center"
                     >
-                        Leave
+                        End
                     </button>
                 </div>
             </div>
@@ -422,19 +408,19 @@ const InterviewRoom = () => {
 const ControlButton = ({
     icon: Icon, label, onClick, isActive,
     activeColor = "text-white", inactiveColor = "text-white", iconColor,
-    badge, subIcon: SubIcon, className = "", activeBg, customIcon
+    badge, subIcon: SubIcon, activeBg, customIcon
 }) => (
-    <div className={`flex flex-col items-center justify-center gap-1 cursor-pointer group min-w-[72px] h-[64px] rounded-lg transition-colors ${isActive && activeBg ? activeBg : 'hover:bg-[#232323]'}`} onClick={onClick}>
+    <div className={`flex flex-col items-center justify-center gap-1 cursor-pointer group px-3 h-[64px] rounded-lg transition-colors ${isActive && activeBg ? activeBg : 'hover:bg-[#232323]'}`} onClick={onClick}>
         <div className="relative flex flex-col items-center">
             <div className="relative">
                 {customIcon ? customIcon : (
                     <Icon
-                        className={`w-6 h-6 stroke-[1.5px] ${iconColor ? iconColor : (isActive ? activeColor : inactiveColor)}`}
-                        fill={isActive && label !== "Unmute" && label !== "Start Video" ? "currentColor" : "none"} // Solid fill for active states sometimes
+                        className={`w-5 h-5 stroke-[2px] ${iconColor ? iconColor : (isActive ? activeColor : inactiveColor)}`}
+                        fill={isActive && (label === "Security" || label === "Participants") ? "currentColor" : "none"}
                     />
                 )}
                 {badge && (
-                    <span className="absolute -top-1.5 -right-2 bg-[#E02828] text-white text-[10px] px-1 min-w-[16px] h-4 flex items-center justify-center rounded-full font-bold shadow-sm">
+                    <span className="absolute -top-2 -right-2 bg-[#E02828] text-white text-[9px] min-w-[14px] h-[14px] flex items-center justify-center rounded-full font-bold shadow-sm ring-2 ring-[#1a1a1a]">
                         {badge}
                     </span>
                 )}
@@ -445,7 +431,7 @@ const ControlButton = ({
                 </div>
             )}
         </div>
-        <span className="text-[11px] text-[#A5A5A5] font-medium group-hover:text-white transition-colors tracking-tight">{label}</span>
+        <span className="text-[10px] text-[#C0C0C0] font-medium group-hover:text-white transition-colors tracking-tight whitespace-nowrap mt-1">{label}</span>
     </div>
 );
 
