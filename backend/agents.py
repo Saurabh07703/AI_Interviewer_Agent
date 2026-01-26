@@ -12,7 +12,7 @@ class ReasoningAgent:
         self.history = []
 
     def generate_question(self, context: dict) -> dict:
-        system_prompt = "You are an expert technical interviewer. Generate a relevant technical interview question based on the candidate's history and CV. Also provide a concise 'Ideal Answer' or key points expected in the response. Output in JSON format: {'question': '...', 'ideal_answer': '...'}"
+        system_prompt = "You are an expert technical interviewer. Generate a relevant technical interview question based on the candidate's history and CV. \n\nIMPORTANT: You must output ONLY a valid JSON object with keys 'question' and 'ideal_answer'. Do not include any preambles or markdown code blocks.\n\nExample:\n{\"question\": \"What is polymorphism?\", \"ideal_answer\": \"Polymorphism allows objects to be treated as instances of their parent class...\"}"
         
         cv_text = context.get('cv_text', 'No CV provided.')
         
@@ -22,15 +22,25 @@ class ReasoningAgent:
         
         # Try to parse JSON from LLM response
         try:
-            # Simple cleanup to handle potential markdown wrappers
-            clean_response = response.replace("```json", "").replace("```", "").strip()
-            data = json.loads(clean_response)
-            question_text = data.get("question", "Tell me about yourself.")
-            ideal_answer = data.get("ideal_answer", "Values relevant experience.")
-        except:
-            # Fallback if JSON parsing fails
+            # Regex to find the first JSON object
+            match = re.search(r'\{.*\}', response, re.DOTALL)
+            if match:
+                clean_response = match.group(0)
+                data = json.loads(clean_response)
+                question_text = data.get("question", response[:100] + "...")
+                ideal_answer = data.get("ideal_answer", "Evaluate based on technical correctness.")
+            else:
+                # If no JSON found, assume the entire response is the question
+                print(f"Warning: No JSON structure found in response.")
+                question_text = response
+                ideal_answer = "Evaluate relevance to the question."
+
+        except Exception as e:
+            print(f"JSON Parsing Error in ReasoningAgent: {e}")
+            print(f"Raw Response: {response}")
+            # Fallback: Treat raw response as question if possible
             question_text = response
-            ideal_answer = "Evaluate based on general technical correctness."
+            ideal_answer = "Evaluate based on relevance."
 
         self.history.append({"role": "agent", "content": question_text})
         return {"question": question_text, "ideal_answer": ideal_answer}
