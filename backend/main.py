@@ -1,6 +1,10 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
 import json
+
+load_dotenv()
+
 import base64
 import numpy as np
 import cv2
@@ -68,6 +72,7 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
     candidate_data = {"name": "Candidate", "cv_text": ""}
     question_count = 0
     MAX_QUESTIONS = 5
+    current_ideal_answer = ""
     
     try:
         while True:
@@ -81,10 +86,13 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
                 print(f"Initialized interview for {candidate_data.get('name')}")
                 
                 # Generate first question
-                first_question = reasoning_agent.generate_question(context=candidate_data)
+                q_data = reasoning_agent.generate_question(context=candidate_data)
+                first_question_text = q_data.get("question")
+                current_ideal_answer = q_data.get("ideal_answer")
+                
                 await websocket.send_json({
                     "type": "question",
-                    "payload": first_question
+                    "payload": first_question_text
                 })
                 question_count += 1
                 
@@ -104,8 +112,8 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
             elif msg_type == "answer":
                 user_answer = message.get("payload")
                 
-                # Score the answer
-                score = scoring_agent.evaluate(user_answer, criteria=["Technical", "Communication"])
+                # Score the answer using ideal answer comparison
+                score = scoring_agent.evaluate(user_answer, current_ideal_answer)
                 
                 # Aggregate scores
                 interview_scores["technical_score"].append(score.get("technical_score", 0))
@@ -116,10 +124,13 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
                 reasoning_agent.process_answer(user_answer)
                 
                 if question_count < MAX_QUESTIONS:
-                    next_question = reasoning_agent.generate_question(context=candidate_data)
+                    q_data = reasoning_agent.generate_question(context=candidate_data)
+                    next_question_text = q_data.get("question")
+                    current_ideal_answer = q_data.get("ideal_answer")
+                    
                     await websocket.send_json({
                         "type": "question",
-                        "payload": next_question
+                        "payload": next_question_text
                     })
                     question_count += 1
                 else:
@@ -153,6 +164,7 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
                     
     except WebSocketDisconnect:
         print(f"Client {client_id} disconnected")
+
     except Exception as e:
         print(f"Error in Websocket: {e}")
         import traceback

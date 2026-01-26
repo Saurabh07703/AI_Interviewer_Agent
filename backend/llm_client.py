@@ -1,27 +1,45 @@
 import os
 import random
+from groq import Groq
 
 class LLMClient:
-    def __init__(self, provider="openai"):
+    def __init__(self, provider="groq"):
         self.provider = provider
-        self.api_key = os.getenv("OPENAI_API_KEY")
-        # In a real scenario, initialize OpenAI client here
-        # self.client = OpenAI(api_key=self.api_key)
+        self.api_key = os.getenv("GROQ_API_KEY")
+        if self.api_key:
+            self.client = Groq(api_key=self.api_key)
+        else:
+            self.client = None
 
     def completion(self, prompt: str, system_prompt: str = "You are a helpful AI assistant.") -> str:
         """
-        Generates a completion from the LLM.
+        Generates a completion from the LLM using Groq.
         """
-        if self.api_key:
+        if self.client:
             try:
-                # Placeholder for actual API call
-                # response = self.client.chat.completions.create(...)
-                # return response.choices[0].message.content
-                return f"[MOCK OPENAI RESPONSE] based on: {prompt[:20]}..."
+                chat_completion = self.client.chat.completions.create(
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": system_prompt,
+                        },
+                        {
+                            "role": "user",
+                            "content": prompt,
+                        }
+                    ],
+                    model="llama3-8b-8192",
+                )
+                return chat_completion.choices[0].message.content
             except Exception as e:
-                print(f"LLM Error: {e}")
+                print(f"!!! LLM CRITICAL ERROR !!!")
+                print(f"Error Type: {type(e)}")
+                print(f"Error Message: {e}")
+                import traceback
+                traceback.print_exc()
                 return self._mock_fallback(prompt)
         else:
+            print("!!! LLM ERROR: Client is None (API Key missing or invalid) !!!")
             return self._mock_fallback(prompt)
 
     def _mock_fallback(self, prompt: str) -> str:

@@ -5,7 +5,7 @@ import {
     MessageSquare, Users, Share,
     Smile, MonitorUp, ChevronUp, Shield, Info,
     X, Send, Grid, AppWindow, PenTool, MoreHorizontal,
-    Sparkles, Check
+    Sparkles, Check, AlertTriangle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -33,6 +33,7 @@ const InterviewRoom = () => {
     const [currentQuestion, setCurrentQuestion] = useState("Waiting for interview to start...");
     const [fraudWarning, setFraudWarning] = useState(null);
     const [currentTime, setCurrentTime] = useState(new Date());
+    const [inputText, setInputText] = useState("");
 
     // Mock Participants for Gallery View
     const storedName = localStorage.getItem('candidate_name') || 'Saurabh Tiwari';
@@ -103,6 +104,7 @@ const InterviewRoom = () => {
                     const { reason, face_count } = data.payload;
                     let warningMsg = "Attention Required";
                     if (face_count === 0) warningMsg = "No face detected in frame";
+                    else if (face_count === 0) warningMsg = "No face detected";
                     else if (face_count > 1) warningMsg = "Multiple faces detected";
                     else if (reason) warningMsg = reason;
 
@@ -155,6 +157,22 @@ const InterviewRoom = () => {
         setMessages(prev => [...prev, { role, text, time: new Date() }]);
     };
 
+    const handleSendMessage = () => {
+        if (!inputText.trim()) return;
+        addMessage('user', inputText);
+        if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+            ws.current.send(JSON.stringify({ type: 'answer', payload: inputText }));
+        }
+        setInputText("");
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSendMessage();
+        }
+    };
+
     const triggerReaction = (emoji) => {
         const id = Date.now();
         setReactions(prev => [...prev, { id, emoji }]);
@@ -164,7 +182,7 @@ const InterviewRoom = () => {
     };
 
     return (
-        <div className="flex flex-col h-screen bg-black text-white font-sans overflow-hidden">
+        <div className="flex flex-col h-screen bg-black text-white font-sans overflow-hidden relative">
             {/* Top Bar - Zoom Workplace Style */}
             <div ref={topBarRef} className="h-12 flex items-center justify-between px-4 absolute top-0 w-full z-20 bg-black/60 backdrop-blur-sm">
                 {/* Left: Brand Name */}
@@ -190,7 +208,7 @@ const InterviewRoom = () => {
             </div>
 
             {/* Main Content Area */}
-            <div className={`flex-1 flex overflow-hidden ${activeSidebar ? 'mr-0' : ''} bg-black`}>
+            <div className={`flex-1 flex overflow-hidden ${activeSidebar ? 'mr-0' : ''} bg-black pb-[72px]`}>
                 {/* Video Area */}
                 <div className="flex-1 flex items-center justify-center p-0 relative">
 
@@ -282,6 +300,7 @@ const InterviewRoom = () => {
                                             </div>
                                         </div>
                                     ))}
+                                    <div ref={chatEndRef} />
                                 </div>
                             ) : (
                                 <div className="divide-y divide-gray-100">
@@ -305,12 +324,15 @@ const InterviewRoom = () => {
                             <div className="p-4 border-t border-gray-200 bg-gray-50">
                                 <div className="relative">
                                     <textarea
-                                        className="w-full border border-gray-300 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none h-20"
+                                        className="w-full border border-gray-300 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none h-20 text-black"
                                         placeholder="Type message here..."
+                                        value={inputText}
+                                        onChange={(e) => setInputText(e.target.value)}
+                                        onKeyDown={handleKeyDown}
                                     />
                                     <div className="absolute bottom-2 right-2 flex gap-2">
                                         <button className="p-1 text-gray-400 hover:text-blue-600 rounded bg-white border border-gray-200"><Smile className="w-4 h-4" /></button>
-                                        <button className="p-1 text-white bg-blue-600 hover:bg-blue-700 rounded"><Send className="w-4 h-4" /></button>
+                                        <button onClick={handleSendMessage} className="p-1 text-white bg-blue-600 hover:bg-blue-700 rounded"><Send className="w-4 h-4" /></button>
                                     </div>
                                 </div>
                             </div>
@@ -400,6 +422,56 @@ const InterviewRoom = () => {
                     </button>
                 </div>
             </div>
+
+            {/* Scorecard Modal */}
+            <AnimatePresence>
+                {showReport && reportData && (
+                    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            className="bg-white text-black rounded-lg shadow-2xl p-6 max-w-2xl w-full mx-4 overflow-y-auto max-h-[80vh]"
+                        >
+                            <div className="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
+                                <h2 className="text-2xl font-bold text-gray-800">Interview Scorecard</h2>
+                                <button onClick={() => navigate('/dashboard')} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                                    <X className="w-6 h-6 text-gray-500" />
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                                <ScoreCardItem label="Technical" score={reportData.decision?.technical_score || 0} color="bg-blue-100 text-blue-700" />
+                                <ScoreCardItem label="Communication" score={reportData.decision?.communication_score || 0} color="bg-green-100 text-green-700" />
+                                <ScoreCardItem label="Confidence" score={reportData.decision?.confidence_score || 0} color="bg-purple-100 text-purple-700" />
+                            </div>
+
+                            <div className="mb-6">
+                                <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                                    <Sparkles className="w-5 h-5 text-yellow-500" />
+                                    Final Decision
+                                </h3>
+                                <div className={`p-4 rounded-lg font-bold text-center text-xl ${reportData.decision?.decision === "HIRE" ? "bg-green-100 text-green-800 border-green-200" : "bg-red-100 text-red-800 border-red-200"}`}>
+                                    {reportData.decision?.decision}
+                                </div>
+                            </div>
+
+                            <div className="mb-6">
+                                <h3 className="text-lg font-semibold mb-2">Detailed Report</h3>
+                                <div className="bg-gray-50 p-4 rounded-lg text-sm text-gray-700 whitespace-pre-wrap leading-relaxed border border-gray-200">
+                                    {reportData.report}
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end gap-3">
+                                <button onClick={() => navigate('/dashboard')} className="px-5 py-2.5 bg-gray-900 hover:bg-black text-white rounded-lg font-medium transition-colors">
+                                    Close & Return to Dashboard
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };
@@ -432,6 +504,13 @@ const ControlButton = ({
             )}
         </div>
         <span className="text-[10px] text-[#C0C0C0] font-medium group-hover:text-white transition-colors tracking-tight whitespace-nowrap mt-1">{label}</span>
+    </div>
+);
+
+const ScoreCardItem = ({ label, score, color }) => (
+    <div className={`flex flex-col items-center justify-center p-4 rounded-xl ${color}`}>
+        <span className="text-3xl font-bold mb-1">{typeof score === 'number' ? Math.round(score) : score}</span>
+        <span className="text-xs font-semibold uppercase tracking-wider opacity-80">{label}</span>
     </div>
 );
 
